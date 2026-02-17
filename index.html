@@ -155,11 +155,16 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (session) {
     currentUser = session.user;
-    console.log('Auth state changed - user:', currentUser);
+    // Update name like your email login
+    const userName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+    document.getElementById('user-name').textContent = userName;
+    show('home');
   } else {
     currentUser = null;
+    show('login');
   }
 });
+
 </script>
 
 <div id="app">
@@ -179,7 +184,9 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
       <a href="#" class="link-right" onclick="show('reset')">Forgot Password?</a>
       <button class="btn-primary" onclick="signIn()">Sign In</button>
       <div class="divider">or</div>
-      <button class="btn-secondary"><span class="google-icon">G</span> Login with Google</button>
+      <button class="btn-secondary" onclick="googleSignIn()">
+  <span class="google-icon">G</span> Login with Google
+</button>
       <p class="text-center">Don't have an account? <a href="#" onclick="show('signup')">Sign Up</a></p>
     </div>
   </div>
@@ -481,6 +488,17 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 </div>
 
 <script>
+  async function googleSignIn() {
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin  // Back to your app after auth
+    }
+  });
+  
+  if (error) alert('Google login failed: ' + error.message);
+}
+
 // Authentication Functions
 async function signUp() {
   const email = document.getElementById('signup-email').value;
